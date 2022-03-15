@@ -18,6 +18,9 @@ import traceback
 import numpy as np
 import itertools
 
+# Python 3.10 fix
+import collections
+collections.Callable = collections.abc.Callable
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
@@ -167,6 +170,7 @@ class GoogleMapsScraper:
 
         self.__scroll()
 
+        time.sleep(4)
 
         # expand review text
         self.__expand_reviews()
@@ -235,7 +239,7 @@ class GoogleMapsScraper:
         item['caption'] = review_text
 
         # depends on language, which depends on geolocation defined by Google Maps
-        # custom mapping to transform into date shuold be implemented
+        # custom mapping to transform into date should be implemented
         item['relative_date'] = relative_date
 
         # store datetime of scraping and apply further processing to calculate
@@ -268,7 +272,8 @@ class GoogleMapsScraper:
     # expand review description
     def __expand_reviews(self):
         # use XPath to load complete reviews
-        links = self.driver.find_elements_by_xpath('//button[@class=\'section-expand-review blue-link\']')
+        links = self.driver.find_elements_by_xpath("//button[@class='ODSEW-KoToPc-ShBeI gXqMYb-hSRGPd']")
+        print(links)
         for l in links:
             l.click()
         time.sleep(2)
@@ -310,8 +315,11 @@ class GoogleMapsScraper:
             options.add_argument("--window-size=1366,768")
 
         options.add_argument("--disable-notifications")
-        options.add_argument("--lang=en-GB")
-        input_driver = webdriver.Chrome(executable_path=ChromeDriverManager(log_level=0).install(), options=options)
+        options.add_argument("--lang=en-US")
+        options.add_argument('--user-data-dir=/home/david/.config/BraveSoftware/Brave-Browser')
+        options.add_argument("--profile-directory=Selenium")
+        options.binary_location = '/usr/bin/brave'
+        input_driver = webdriver.Chrome(executable_path='/home/david/Downloads/chromedriver_linux64/chromedriver', chrome_options=options)
 
          # first lets click on google agree button so we can continue
         try:

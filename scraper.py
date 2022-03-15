@@ -10,20 +10,21 @@ import time
 ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user']
 HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date','retrieval_date', 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user', 'url_source']
+HEADER_PLACES = ['overall_rating', 'n_reviews', 'url_source']
 
-def csv_writer(source_field, ind_sort_by, path='data/'):
-    outfile= ind_sort_by + '_gm_reviews.csv'
+def csv_writer(header, outfile, path='data/'):
     targetfile = open(path + outfile, mode='w', encoding='utf-8', newline='\n')
     writer = csv.writer(targetfile, quoting=csv.QUOTE_MINIMAL)
 
-    if source_field:
-        h = HEADER_W_SOURCE
-    else:
-        h = HEADER
-    writer.writerow(h)
+    writer.writerow(header)
 
     return writer
 
+def csv_writer_places(outfile, path='data/'):
+    return csv_writer(HEADER_PLACES, outfile, path=path)
+
+def csv_writer_reviews(outfile, source_field, path='data/'):
+    return csv_writer(HEADER_W_SOURCE if source_field else HEADER, outfile, path);
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
@@ -38,15 +39,22 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # store reviews in CSV file
-    writer = csv_writer(args.source, args.sort_by)
+    writer = csv_writer_reviews('reviews.csv', args.source)
+    places_writer = csv_writer_places('places.csv')
 
     with GoogleMapsScraper(debug=args.debug) as scraper:
         with open(args.i, 'r') as urls_file:
             for url in urls_file:
+                n_of_all_reviews = 0
+
                 if args.place:
-                    print(scraper.get_account(url))
-                else:
-                    error = scraper.sort_by(url, ind[args.sort_by])
+                    data = scraper.get_account(url)
+                    row_data = list(data.values())
+                    n_of_all_reviews = row_data[1]
+                    row_data.append(url[:-1])
+                    places_writer.writerow(row_data)
+
+                error = scraper.sort_by(url, ind[args.sort_by])
 
                 if error == 0:
 
@@ -55,7 +63,8 @@ if __name__ == '__main__':
                     #if ind[args.sort_by] == 0:
                     #    scraper.more_reviews()
 
-                    while n < args.N:
+                    # if n is less than the number of wanted reviews, or there are no reviews left
+                    while n < args.N or n < n_of_all_reviews:
 
                         # logging to std out
                         print(colored('[Review ' + str(n) + ']', 'cyan'))

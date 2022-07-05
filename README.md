@@ -26,7 +26,7 @@ generates a csv file containing last 50 reviews of places present in _urls.txt_
 In current implementation, the CSV file is handled as an external function, so if you want to change path and/or name of output file, you need to modify that function.
 
 Additionally, other parameters can be provided:
-- `--place`: boolean value that allows to scrape POI metadata instead of reviews (default: false)
+- `--place`: boolean value that allows to scrape POI metadata in addition to reviews (default: false)
 - `--debug`: boolean value that allows to run the browser using the graphical interface (default: false)
 - `--source`: boolean value that allows to store source URL as additional field in CSV (default: false)
 - `--sort-by`: string value among most_relevant, newest, highest_rating or lowest_rating (default: newest), developed by @quaesito and that allows to change sorting behavior of reviews
